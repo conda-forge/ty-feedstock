@@ -15,7 +15,7 @@ source:
   sha256: 09af8204562d425ffdded570ff205239690ad6ca9d2acf5c9439aef9f0c39b11
 
 build:
-  number: 0
+  number: 1
   script:
     content:
       - maturin build --release
@@ -33,6 +33,11 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - make
+    - if: build_platform != target_platform
+      then:
+        - python ${{ python_min }}.*
+        - cross-python_${{ target_platform }}
+        - maturin >=1.0,<2
   host:
     - python ${{ python_min }}.*
     - python-abi3
@@ -56,7 +61,7 @@ about:
   license_file:
     - LICENSE
     - THIRDPARTY.yml
-  summary: An extremely fast Python type checker, written in Rust.
+  summary: An extremely fast Python type checker and language server, written in Rust.
   homepage: https://github.com/astral-sh/ty
   repository: https://github.com/astral-sh/ty
 
