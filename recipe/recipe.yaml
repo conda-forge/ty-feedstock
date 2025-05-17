@@ -4,7 +4,7 @@ schema_version: 1
 
 context:
   name: ty
-  version: "0.0.1a3"
+  version: "0.0.1a4"
 
 package:
   name: "${{ name|lower }}"
@@ -12,10 +12,10 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  sha256: 56e73d152888576932c67c61b295a5428636e3ef15e8a19a83977822b3a8a762
+  sha256: 6da8d3a946e93fc2ed6ee902e40768a78188c6452bebcd2d1192ed7661cef8c5
 
 build:
-  number: 1
+  number: 0
   script:
     content:
       - maturin build --release
