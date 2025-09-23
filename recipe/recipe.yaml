@@ -15,9 +15,17 @@ source:
   sha256: e941e9a9d1e54b03eeaf9c3197c26a19cf76009fd5e41e16e5657c1c827bd6d3
 
 build:
-  number: 0
+  number: 1
   script:
     content:
+      # Tell `pixi global` to not set CONDA_PREFIX during activation
+      - if: win
+        then:
+          - if not exist "%PREFIX%\\etc\\pixi" mkdir "%PREFIX%\\etc\\pixi"
+          - type nul > "%PREFIX%\\etc\\pixi\\global-ignore-conda-prefix"
+        else:
+          - mkdir -p "${PREFIX}/etc/pixi"
+          - touch "${PREFIX}/etc/pixi/global-ignore-conda-prefix"
       - maturin build --release
       - ${{ PYTHON }} -m pip install --find-links=ruff/target/wheels ty
       - cd ruff
