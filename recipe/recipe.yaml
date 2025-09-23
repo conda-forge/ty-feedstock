@@ -19,6 +19,7 @@ build:
   script:
     content:
       # Tell `pixi global` to not set CONDA_PREFIX during activation
+      # https://pixi.sh/dev/global_tools/introduction/#opt-out-of-conda_prefix
       - if: win
         then:
           - if not exist "%PREFIX%\\etc\\pixi" mkdir "%PREFIX%\\etc\\pixi"
