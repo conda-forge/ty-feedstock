@@ -4,7 +4,7 @@ schema_version: 1
 
 context:
   name: ty
-  version: "0.0.1a21"
+  version: "0.0.1a22"
 
 package:
   name: "${{ name|lower }}"
@@ -12,10 +12,10 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  sha256: e941e9a9d1e54b03eeaf9c3197c26a19cf76009fd5e41e16e5657c1c827bd6d3
+  sha256: b20ec5362830a1e9e05654c15e88607fdbb45325ec130a9a364c6dd412ecbf55
 
 build:
-  number: 2
+  number: 0
   script:
     content:
       # Tell `pixi global` to not set CONDA_PREFIX during activation
