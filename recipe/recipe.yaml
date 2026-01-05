@@ -15,8 +15,10 @@ source:
   sha256: 352ac93d6e0050763be57ad1e02087f454a842887e618ec14ac2103feac48676
 
 build:
-  number: 0
+  number: 1
   script:
+    env:
+      JEMALLOC_SYS_WITH_LG_PAGE: ${{ '16' if (aarch64 or ppc64le) else '' }}
     content:
       # Tell `pixi global` to not set CONDA_PREFIX during activation
       # https://pixi.sh/dev/global_tools/introduction/#opt-out-of-conda_prefix
