@@ -4,7 +4,7 @@ schema_version: 1
 
 context:
   name: ty
-  version: "0.0.55"
+  version: "0.0.56"
 
 package:
   name: "${{ name|lower }}"
@@ -12,7 +12,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  sha256: 88ca87073825a79a8327c550efcc86cec94344890244c5946f84c9e44a969f31
+  sha256: 84d114dc3796361c0fc72945016eabd74d46b9ee64f198cb0e485719704681e5
 
 build:
   number: 0
