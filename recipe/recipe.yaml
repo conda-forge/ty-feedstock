@@ -48,8 +48,6 @@ build:
         else:
           - cargo auditable install --locked --no-track --bins --root %LIBRARY_PREFIX% --path .
       - cargo-bundle-licenses --format yaml --output ../../../THIRDPARTY.yml
-      # this runs the binary we just built, which works when cross-compiling
-      # because conda-forge's CI registers qemu binfmt handlers
       - if: unix
         then:
           - mkdir -p $PREFIX/share/zsh/site-functions $PREFIX/share/bash-completion/completions $PREFIX/share/fish/vendor_completions.d
@@ -82,6 +80,7 @@ tests:
       strict: true
   - script:
       - ty --help
+      - ty --version
 
 about:
   license: MIT
