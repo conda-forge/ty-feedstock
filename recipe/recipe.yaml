@@ -60,6 +60,7 @@ tests:
       bin:
         - ty
       files:
+        - etc/pixi/ty/global-ignore-conda-prefix
         - if: unix
           then:
             - share/zsh/site-functions/_ty
