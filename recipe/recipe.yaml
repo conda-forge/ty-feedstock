@@ -18,6 +18,10 @@ build:
   script:
     env:
       JEMALLOC_SYS_WITH_LG_PAGE: ${{ '16' if (aarch64 or ppc64le) else '' }}
+      # conda-forge's CI registers qemu binfmt handlers and points `QEMU_LD_PREFIX` at a
+      # sysroot for the target platform, which lets us run the binary we just built even
+      # when cross-compiling. Unlike conda-build, rattler-build does not forward it.
+      QEMU_LD_PREFIX: ${{ env.get("QEMU_LD_PREFIX", default="") }}
     content:
       # Tell `pixi global` to not set CONDA_PREFIX during activation
       # https://pixi.sh/dev/global_tools/introduction/#opt-out-of-conda_prefix
@@ -48,9 +52,9 @@ build:
         else:
           - cargo auditable install --locked --no-track --bins --root %LIBRARY_PREFIX% --path .
       - cargo-bundle-licenses --format yaml --output ../../../THIRDPARTY.yml
-      # generating the completions runs the binary we just built, which is not
-      # possible when cross-compiling
-      - if: unix and build_platform == target_platform
+      # this runs the binary we just built, which works when cross-compiling
+      # because of the qemu emulation set up via `QEMU_LD_PREFIX` above
+      - if: unix
         then:
           - mkdir -p $PREFIX/share/zsh/site-functions $PREFIX/share/bash-completion/completions $PREFIX/share/fish/vendor_completions.d
           - $PREFIX/bin/ty generate-shell-completion zsh > $PREFIX/share/zsh/site-functions/_ty
@@ -74,14 +78,18 @@ tests:
         - ty
       files:
         - etc/pixi/ty/global-ignore-conda-prefix
-        - if: unix and build_platform == target_platform
+        - if: unix
           then:
             - share/zsh/site-functions/_ty
             - share/bash-completion/completions/ty
             - share/fish/vendor_completions.d/ty.fish
       strict: true
   - script:
-      - ty --help
+      content:
+        - ty --help
+      # conda-forge runs the tests of cross-compiled linux packages under qemu
+      env:
+        QEMU_LD_PREFIX: ${{ env.get("QEMU_LD_PREFIX", default="") }}
 
 about:
   license: MIT
