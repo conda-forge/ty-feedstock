@@ -18,10 +18,6 @@ build:
   script:
     env:
       JEMALLOC_SYS_WITH_LG_PAGE: ${{ '16' if (aarch64 or ppc64le) else '' }}
-      # conda-forge's CI registers qemu binfmt handlers and points `QEMU_LD_PREFIX` at a
-      # sysroot for the target platform, which lets us run the binary we just built even
-      # when cross-compiling. Unlike conda-build, rattler-build does not forward it.
-      QEMU_LD_PREFIX: ${{ env.get("QEMU_LD_PREFIX", default="") }}
     content:
       # Tell `pixi global` to not set CONDA_PREFIX during activation
       # https://pixi.sh/dev/global_tools/introduction/#opt-out-of-conda_prefix
@@ -53,7 +49,7 @@ build:
           - cargo auditable install --locked --no-track --bins --root %LIBRARY_PREFIX% --path .
       - cargo-bundle-licenses --format yaml --output ../../../THIRDPARTY.yml
       # this runs the binary we just built, which works when cross-compiling
-      # because of the qemu emulation set up via `QEMU_LD_PREFIX` above
+      # because conda-forge's CI registers qemu binfmt handlers
       - if: unix
         then:
           - mkdir -p $PREFIX/share/zsh/site-functions $PREFIX/share/bash-completion/completions $PREFIX/share/fish/vendor_completions.d
@@ -85,11 +81,7 @@ tests:
             - share/fish/vendor_completions.d/ty.fish
       strict: true
   - script:
-      content:
-        - ty --help
-      # conda-forge runs the tests of cross-compiled linux packages under qemu
-      env:
-        QEMU_LD_PREFIX: ${{ env.get("QEMU_LD_PREFIX", default="") }}
+      - ty --help
 
 about:
   license: MIT
