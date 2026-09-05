@@ -11,6 +11,8 @@ Summary: An extremely fast Python type checker and language server, written in R
 
 Development: https://github.com/astral-sh/ty
 
+Documentation: https://docs.astral.sh/ty
+
 Current build status
 ====================
 

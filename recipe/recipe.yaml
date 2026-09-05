@@ -1,21 +1,20 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
-
 schema_version: 1
 
 context:
-  name: ty
   version: "0.0.78"
 
 package:
-  name: "${{ name|lower }}"
-  version: "${{ version }}"
+  name: ty
+  version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  sha256: 770b45854f85fa11595208f08c0f28df80943164d10a2832d86be6ac29f135b2
+  # this also contains the ruff source code in contrast to https://github.com/astral-sh/ty/archive/refs/tags/${{ version }}.tar.gz
+  url: https://github.com/astral-sh/ty/releases/download/${{ version }}/source.tar.gz
+  sha256: 9f5ca730e8be664ba5a9038c22cf15179d6cdc65160b7c7c5f4f763a30827334
 
 build:
-  number: 0
+  number: 1
   script:
     env:
       JEMALLOC_SYS_WITH_LG_PAGE: ${{ '16' if (aarch64 or ppc64le) else '' }}
@@ -29,43 +28,59 @@ build:
         else:
           - mkdir -p "${PREFIX}/etc/pixi/ty"
           - touch "${PREFIX}/etc/pixi/ty/global-ignore-conda-prefix"
-      - maturin build --release
-      - ${{ PYTHON }} -m pip install --find-links=ruff/target/wheels ty
-      - cd ruff
-      - cargo-bundle-licenses --format yaml --output ../THIRDPARTY.yml
-
-  python:
-    version_independent: true
+      # rust-lld cannot handle some ppc64le relocations emitted by the jemalloc
+      # C sources, so fall back to the bfd linker there
+      - if: target_platform == "linux-ppc64le"
+        then: export CARGO_BUILD_RUSTFLAGS="${CARGO_BUILD_RUSTFLAGS:-} -C link-arg=-fuse-ld=bfd"
+      # `zip` (with the `zstd` feature) is a build dependency of `ty_vendored`, so cargo
+      # compiles the `zstd-sys` C sources for the build platform too. cc-rs accumulates
+      # the flags of `CFLAGS` into both compiles, which makes the build platform compiler
+      # choke on the target's `-mcpu=power8` / `-mabi=lp64d`. Pass them via `TARGET_CFLAGS`
+      # instead, which cc-rs only applies to the target compile.
+      - if: build_platform != target_platform
+        then:
+          - export TARGET_CFLAGS="${CFLAGS}"
+          - unset CFLAGS
+      - cd ruff/crates/ty
+      - if: unix
+        then:
+          - cargo auditable install --locked --no-track --bins --root ${{ PREFIX }} --path .
+        else:
+          - cargo auditable install --locked --no-track --bins --root %LIBRARY_PREFIX% --path .
+      - cargo-bundle-licenses --format yaml --output ../../../THIRDPARTY.yml
+      - if: unix
+        then:
+          - mkdir -p $PREFIX/share/zsh/site-functions $PREFIX/share/bash-completion/completions $PREFIX/share/fish/vendor_completions.d
+          - $PREFIX/bin/ty generate-shell-completion zsh > $PREFIX/share/zsh/site-functions/_ty
+          - $PREFIX/bin/ty generate-shell-completion bash > $PREFIX/share/bash-completion/completions/ty
+          - $PREFIX/bin/ty generate-shell-completion fish > $PREFIX/share/fish/vendor_completions.d/ty.fish
 
 requirements:
   build:
-    - cargo-bundle-licenses
     - ${{ compiler('rust') }}
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
-    - make
-    - if: build_platform != target_platform
-      then:
-        - python ${{ python_min }}.*
-        - cross-python_${{ target_platform }}
-        - maturin >=1.0,<2
-  host:
-    - python ${{ python_min }}.*
-    - python-abi3
-    - maturin >=1.0,<2
-    - pip
-  run:
-    - python
+    - cargo-bundle-licenses
+    - cargo-auditable
+    # only needed to build the vendored jemalloc, which is not used on Windows
+    - if: unix
+      then: make
 
 tests:
-  - python:
-      imports:
+  - package_contents:
+      bin:
         - ty
-      python_version:
-        - ${{ python_min }}.*
-        - "*"
+      files:
+        - etc/pixi/ty/global-ignore-conda-prefix
+        - if: unix
+          then:
+            - share/zsh/site-functions/_ty
+            - share/bash-completion/completions/ty
+            - share/fish/vendor_completions.d/ty.fish
+      strict: true
   - script:
       - ty --help
+      - ty --version
 
 about:
   license: MIT
@@ -74,6 +89,7 @@ about:
     - THIRDPARTY.yml
   summary: An extremely fast Python type checker and language server, written in Rust.
   homepage: https://github.com/astral-sh/ty
+  documentation: https://docs.astral.sh/ty
   repository: https://github.com/astral-sh/ty
 
 extra:
