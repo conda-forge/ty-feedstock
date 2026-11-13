@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: "0.0.101"
+  version: "0.0.102"
 
 package:
   name: ty
@@ -11,7 +11,7 @@ package:
 source:
   # this also contains the ruff source code in contrast to https://github.com/astral-sh/ty/archive/refs/tags/${{ version }}.tar.gz
   url: https://github.com/astral-sh/ty/releases/download/${{ version }}/source.tar.gz
-  sha256: 0a568afef5753b30c2456c9199b0d1630170cc981dcc4113389de14d5cadc50e
+  sha256: 47360eefc70bcea7c33f0acb3e93f057f95c51123103226aead75d02a49cd981
 
 build:
   number: 0
